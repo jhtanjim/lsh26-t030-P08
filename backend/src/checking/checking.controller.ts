@@ -11,7 +11,7 @@ export class CheckingController {
     return traces
       .filter((t) => {
         const opt = t.subjects.find((s) => !s.isCompulsory);
-        return opt && (opt.status === 'ABSENT' || opt.gradePoint <= 2);
+        return opt && (opt.wasAbsent || opt.gradePoint <= 2);
       })
       .map((t) => {
         const opt = t.subjects.find((s) => !s.isCompulsory)!;
@@ -19,8 +19,8 @@ export class CheckingController {
           studentId: t.studentId,
           name: t.name,
           className: t.className,
-          subject: opt.code,
-          reason: opt.status === 'ABSENT' ? 'Absent in optional subject' : `Optional GP ${opt.gradePoint} <= 2`,
+          subject: opt.subject,
+          reason: opt.wasAbsent ? 'Absent in optional subject' : `Optional GP ${opt.gradePoint} <= 2`,
           finalResult: t.finalGrade,
         };
       });
@@ -32,12 +32,12 @@ export class CheckingController {
     const rows: any[] = [];
     for (const t of traces) {
       for (const s of t.subjects) {
-        if (s.hasPractical && !s.isAbsent && (s.practicalMark ?? 0) < 8) {
+        if (s.hasPractical && !s.wasAbsent && (s.practicalMark ?? 0) < 8) {
           rows.push({
             studentId: t.studentId,
             name: t.name,
             className: t.className,
-            subject: s.code,
+            subject: s.subject,
             practicalMark: s.practicalMark,
             finalResult: t.finalGrade,
           });
@@ -53,12 +53,12 @@ export class CheckingController {
     const rows: any[] = [];
     for (const t of traces) {
       for (const s of t.subjects) {
-        if (s.isAbsent) {
+        if (s.wasAbsent) {
           rows.push({
             studentId: t.studentId,
             name: t.name,
             className: t.className,
-            subject: s.code,
+            subject: s.subject,
             finalResult: t.finalGrade,
           });
         }
@@ -79,8 +79,8 @@ export class CheckingController {
     for (const t of traces) {
       gradeDist[t.finalGrade] = (gradeDist[t.finalGrade] || 0) + 1;
       for (const s of t.subjects) {
-        if (s.status === 'FAIL') {
-          subjectFailCount[s.code] = (subjectFailCount[s.code] || 0) + 1;
+        if (s.isFail) {
+          subjectFailCount[s.subject] = (subjectFailCount[s.subject] || 0) + 1;
         }
       }
     }
