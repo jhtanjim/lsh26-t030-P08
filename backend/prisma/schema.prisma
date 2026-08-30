@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Subject {
+  id           Int         @id @default(autoincrement())
+  code         SubjectCode @unique
+  name         String
+  hasPractical Boolean
+  isCompulsory Boolean
+  marks        Mark[]
+}
+
+model Student {
+  id        Int    @id @default(autoincrement())
+  name      String
+  className String
+  roll      Int
+  marks     Mark[]
+
+  @@unique([className, roll])
+}
+
+model Mark {
+  id            Int     @id @default(autoincrement())
+  studentId     Int
+  subjectId     Int
+  theoryMark    Int?
+  practicalMark Int?
+  isAbsent      Boolean @default(false)
+  student       Student @relation(fields: [studentId], references: [id])
+  subject       Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([studentId, subjectId])
+  @@index([studentId])
+}
+
+enum SubjectCode {
+  BAN
+  ENG
+  MAT
+  PHY
+  CHE
+  BIO
+  HMT
+  AGR
+  REL
+}
